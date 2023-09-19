@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Conway's Game of Life</title>
+  <style>
+    body {
+      text-align: center;
+    }
+
+    canvas {
+      border: 1px solid #000;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Conway's Game of Life</h1>
+  <canvas id="gameCanvas"></canvas>
+
+  <script>
+    // Configuration
+    const canvasSize = 600;
+    const cellSize = 10;
+    const numRows = canvasSize / cellSize;
+    const numCols = canvasSize / cellSize;
+    const delay = 100; // Delay between generations (in milliseconds)
+
+    // Create the canvas
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvasSize;
+    canvas.height = canvasSize;
+
+    // Initialize the grid
+    let grid = createGrid();
+
+    // Add event listener to start the game
+    canvas.addEventListener('click', startGame);
+
+    // Function to create an empty grid
+    function createGrid() {
+      const grid = new Array(numRows);
+      for (let i = 0; i < numRows; i++) {
+        grid[i] = new Array(numCols).fill(0);
+      }
+      return grid;
+    }
+
+    // Function to start the game
+    function startGame(event) {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = event.clientX - rect.left;
+      const mouseY = event.clientY - rect.top;
+      const col = Math.floor(mouseX / cellSize);
+      const row = Math.floor(mouseY / cellSize);
+
+      grid[row][col] = 1;
+
+      canvas.removeEventListener('click', startGame);
+      setInterval(updateGame, delay);
+    }
+
+    // Function to update the game
+    function updateGame() {
+      const newGrid = createGrid();
+
+      // Update cells
+      for (let row = 0; row < numRows; row++) {
+        for (let col = 0; col < numCols; col++) {
+          const cell = grid[row][col];
+          const numNeighbors = countNeighbors(row, col);
+
+          if (cell === 1) {
+            if (numNeighbors < 2 || numNeighbors > 3) {
+              newGrid[row][col] = 0; // Cell dies
+            } else {
+              newGrid[row][col] = 1; // Cell survives
+            }
+          } else {
+            if (numNeighbors === 3) {
+              newGrid[row][col] = 1; // Cell is born
+            }
+          }
+        }
+      }
+
+      grid = newGrid;
+      drawGrid();
+    }
+
+    // Function to count the neighbors of a cell
+    function countNeighbors(row, col) {
+      let count = 0;
+      const neighbors = [
+        [-1, -1], [-1, 0], [-1, 1],
+        [0, -1],           [0, 1],
+        [1, -1],  [1, 0],  [1, 1]
+      ];
+
+      for (let i = 0; i < neighbors.length; i++) {
+        const [r, c] = neighbors[i];
+        const newRow = (row + r + numRows) % numRows;
+        const newCol = (col + c + numCols) % numCols;
+        count += grid[newRow][newCol];
+      }
+
+      return count;
+    }
+
+    // Function to draw the grid
+    function drawGrid() {
+      ctx.clearRect(0, 0, canvasSize, canvasSize);
+
+      for (let row = 0; row < numRows; row++) {
+        for (let col = 0; col < numCols; col++) {
+          const cell = grid[row][col];
+
+          if (cell === 1) {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+          }
+        }
+      }
+    }
+  </script>
+</body>
+</html>
